@@ -21,16 +21,16 @@ tagFechamento  ([ \t]*"</"([a-zA-Z]|[1-6])*">"[ \t]*)
 
 
 %%
-[ \t\n]*"<style>"     {contadorCaracteres += YYLeng(); cout << "<style>" << endl; linhasContador++; tagContador++;   BEGIN STYLETRATAMENTO; }//Começo do tratamento de style
+[ \t\n]*"<style>"     {contadorCaracteres += YYLeng(); cout << "+--<style>" << endl; linhasContador++; tagContador++;   BEGIN STYLETRATAMENTO; }//Começo do tratamento de style
 <STYLETRATAMENTO>{eol}	            {contadorCaracteres += YYLeng(); linhasContador++; }
 <STYLETRATAMENTO>.*                 {contadorCaracteres += YYLeng();}   
-<STYLETRATAMENTO>[ \t\n]*"</style>" {contadorCaracteres += YYLeng(); linhasContador++; cout << "</style>" << endl; BEGIN INITIAL;}
-{tagAbertura}   {cout << YYText() << endl; contadorCaracteres += YYLeng(); tagContador++;   BEGIN TEXTOTAGS; }//Começo do tratamento de style
-<TEXTOTAGS>[^\<\t\n]*                { contCaracteresMostrados+= YYLeng(); contadorCaracteres += YYLeng(); cout << "Texto[" << YYLeng() << "]"  << endl;  }   
+<STYLETRATAMENTO>[ \t\n]*"</style>" {contadorCaracteres += YYLeng(); linhasContador++; cout << "+--</style>" << endl; BEGIN INITIAL;}
+{tagAbertura}   {cout  <<"+--" << YYText() << endl; contadorCaracteres += YYLeng(); tagContador++;   BEGIN TEXTOTAGS; }//Começo do tratamento de style
+<TEXTOTAGS>[^\<\t\n]*                { contCaracteresMostrados+= YYLeng(); contadorCaracteres += YYLeng(); cout  <<"+--" << "Texto[" << YYLeng() << "]"  << endl;  }   
 <TEXTOTAGS>"<" { cout << YYText() << endl;  contadorCaracteres += YYLeng(); BEGIN INITIAL;}
-{tagFechamento}     { contadorCaracteres += YYLeng(); cout << YYText() << endl;}
-{comentario}       { contadorCaracteres += YYLeng(); cout  << YYText() << endl;}
-{tipo}              { contadorCaracteres += YYLeng(); tagContador++; cout << YYText() << endl; } 
+{tagFechamento}     { contadorCaracteres += YYLeng(); cout <<"+--" << YYText() << endl;}
+{comentario}       { contadorCaracteres += YYLeng();}
+{tipo}              { contadorCaracteres += YYLeng(); } 
 {eol}	            {contadorCaracteres++; linhasContador++;  }
 .	            {contadorCaracteres++; } 
 
