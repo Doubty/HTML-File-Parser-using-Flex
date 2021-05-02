@@ -4,26 +4,35 @@
 #include <fstream>
 using namespace std;
 
-unsigned linhasContador = 1, tagContador = 0;// colocando pra começar em 1, pq a última linha ás vezes não tem o \n
+unsigned contCaracteresMostrados = 0, contadorCaracteres = 0, linhasContador = 0, tagContador = 0, aux = 0; // criei uma variável aux para ajudar mostrar a hierarquia do documento
 %}
 
-%option noyywrap
+%option noyywrap 
+%x STYLETRATAMENTO 
+%s TEXTOTAGS 
 
+
+word [^ \t\n]+
 eol  \n
 tipo "<!DOCTYPE html>"
 comentario "<!--".*"-->"
-tagAbertura [ \t]*"<"([a-zA-Z]|[1-6])*([ \t]+[a-zA-Z -]*"="\"([1-9]|[a-zA-Z ]|\.|\-|"="|"_"|,|\t|\/)*\")*[ \t]*">"
-tagFechamento  [ \t]*"</"([a-zA-Z]|[1-6])*">"[ \t]*
+tagAbertura ([ \t]*"<"([a-zA-Z]|[1-6])*([ \t]+[a-zA-Z -]*"="\"([0-9]|[a-zA-Z ]|\.|\-|"="|"_"|":"|"("|")"|,|\t|\/)*\")*[ \t]*">")
+tagFechamento  ([ \t]*"</"([a-zA-Z]|[1-6])*">"[ \t]*)
+
 
 %%
-
-
-{tagFechamento}     cout << "F->\t" << YYText() << endl;
-{tagAbertura}      { tagContador++;  cout << "A->\t"<< YYText() << endl;}
-{comentario}        cout << "M->\t" << YYText() << endl;
-{tipo}             { tagContador++; cout << "T->\t" << YYText() << endl; } 
-{eol}	            { linhasContador++; }
-.	                ;
+[ \t\n]*"<style>"     {contadorCaracteres += YYLeng(); cout << "<style>" << endl; linhasContador++; tagContador++;   BEGIN STYLETRATAMENTO; }//Começo do tratamento de style
+<STYLETRATAMENTO>{eol}	            {contadorCaracteres += YYLeng(); linhasContador++; }
+<STYLETRATAMENTO>.*                 {contadorCaracteres += YYLeng();}   
+<STYLETRATAMENTO>[ \t\n]*"</style>" {contadorCaracteres += YYLeng(); linhasContador++; cout << "</style>" << endl; BEGIN INITIAL;}
+{tagAbertura}   {cout << YYText() << endl; contadorCaracteres += YYLeng(); tagContador++;   BEGIN TEXTOTAGS; }//Começo do tratamento de style
+<TEXTOTAGS>[^\<\t\n]*                { contCaracteresMostrados+= YYLeng(); contadorCaracteres += YYLeng(); cout << "Texto[" << YYLeng() << "]"  << endl;  }   
+<TEXTOTAGS>"<" { cout << YYText() << endl;  contadorCaracteres += YYLeng(); BEGIN INITIAL;}
+{tagFechamento}     { contadorCaracteres += YYLeng(); cout << YYText() << endl;}
+{comentario}       { contadorCaracteres += YYLeng(); cout  << YYText() << endl;}
+{tipo}              { contadorCaracteres += YYLeng(); tagContador++; cout << YYText() << endl; } 
+{eol}	            {contadorCaracteres++; linhasContador++;  }
+.	            {contadorCaracteres++; } 
 
 %%
 
@@ -50,8 +59,9 @@ int main(int argc, char ** argv)
 	lexer.yylex();
 
 	cout << "\n\nLinhas: " << linhasContador << "\n"
-
-		 << "Pares de tags: " << tagContador << "\n";
+		 << "Pares de tags: " << tagContador << "\n"
+		  << "Total de caracteres exibidos: " << contCaracteresMostrados << "\n"
+		<< "Total de caracteres do arquivo: " << contadorCaracteres << "\n";
 
 	fin.close();
 	return 0;
