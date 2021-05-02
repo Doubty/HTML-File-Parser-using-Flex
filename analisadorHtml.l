@@ -2,7 +2,10 @@
 // Faz contagem de caracteres, palavras e linhas de um arquivo
 #include <iostream>
 #include <fstream>
+#include <algorithm>
 using namespace std;
+
+string noTabSpace(string tag);
 
 unsigned contCaracteresMostrados = 0, contadorCaracteres = 0, linhasContador = 0, tagContador = 0, aux = 0; // criei uma variável aux para ajudar mostrar a hierarquia do documento
 %}
@@ -25,10 +28,10 @@ tagFechamento  ([ \t]*"</"([a-zA-Z]|[1-6])*">"[ \t]*)
 <STYLETRATAMENTO>{eol}	            {contadorCaracteres += YYLeng(); linhasContador++; }
 <STYLETRATAMENTO>.*                 {contadorCaracteres += YYLeng();}   
 <STYLETRATAMENTO>[ \t\n]*"</style>" {contadorCaracteres += YYLeng(); linhasContador++; cout << "+--</style>" << endl; BEGIN INITIAL;}
-{tagAbertura}   {cout  <<"+--" << YYText() << endl; contadorCaracteres += YYLeng(); tagContador++;   BEGIN TEXTOTAGS; }//Começo do tratamento de style
+{tagAbertura}   {cout  <<"+--" << noTabSpace(YYText()) << endl; contadorCaracteres += YYLeng(); tagContador++;   BEGIN TEXTOTAGS; }//Começo do tratamento de style
 <TEXTOTAGS>[^\<\t\n]*                { contCaracteresMostrados+= YYLeng(); contadorCaracteres += YYLeng(); cout  <<"+--" << "Texto[" << YYLeng() << "]"  << endl;  }   
 <TEXTOTAGS>"<" { cout << YYText() << endl;  contadorCaracteres += YYLeng(); BEGIN INITIAL;}
-{tagFechamento}     { contadorCaracteres += YYLeng(); cout <<"+--" << YYText() << endl;}
+{tagFechamento}     { contadorCaracteres += YYLeng(); cout <<"+--" << noTabSpace(YYText()) << endl;}
 {comentario}       { contadorCaracteres += YYLeng();}
 {tipo}              { contadorCaracteres += YYLeng(); } 
 {eol}	            {contadorCaracteres++; linhasContador++;  }
@@ -65,4 +68,15 @@ int main(int argc, char ** argv)
 
 	fin.close();
 	return 0;
+}
+
+
+// criei essa função para remover espaços e tabulações das string antes de printar
+string noTabSpace(string tag){
+
+tag.erase(std::remove(tag.begin(), tag.end(), '\t'), tag.end());
+tag.erase(std::remove(tag.begin(), tag.end(), ' '), tag.end());
+
+	return tag;
+
 }
